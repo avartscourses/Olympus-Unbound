@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>One Chance: Reveal the Guilty</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: 'Georgia', serif;
+      background: linear-gradient(to bottom, #f9f6f2, #e0dcd2);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      max-width: 600px;
+      background: #ffffffee;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+      text-align: center;
+    }
+    h1 {
+      font-size: 26px;
+      margin-bottom: 10px;
+      color: #4e342e;
+    }
+    p {
+      font-size: 18px;
+      color: #5d4037;
+    }
+    select, button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #bbb;
+    }
+    button {
+      background-color: #6d4c41;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #5d4037;
+    }
+    .message, .error-message {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    .message { color: green; }
+    .error-message { color: darkred; }
+    
+    /* Sound Toggle Button Style */
+    #sound-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 10px;
+      background-color: #6d4c41;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #sound-toggle:hover {
+      background-color: #5d4037;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background sound is removed here since it's handled in the index.html -->
+
+  <!-- Correct sound -->
+  <audio id="correct-sound">
+    <source src="assets/sounds/correct.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- Wrong sound -->
+  <audio id="wrong-sound">
+    <source src="assets/sounds/wrong.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- Game Over sound -->
+  <audio id="gameover-sound">
+    <source src="assets/sounds/gameover.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- Sound Toggle Button -->
+  <button id="sound-toggle">🔊</button>
+
+  <div class="container">
+    <h1>Zeus' Message</h1>
+
+    <form id="revelation-form">
+      <label for="message">What message did Zeus send? (Hint: Zeus has the answer in Mount Olympus. If you haven't discovered the message yet, look for it! Uncover the truth.)</label>
+      <input type="text" id="message" name="message" required />
+      <button type="submit">Submit Revelation</button>
+    </form>
+
+    <div class="message" id="confirmation"></div>
+    <div class="error-message" id="error-message"></div>
+
+    <form id="guilty-form" style="display:none;">
+      <label for="guilty">Who is guilty?</label>
+      <select id="guilty" name="guilty" required>
+        <option value="">Choose the guilty person...</option>
+        <option value="hera">Hera</option>
+        <option value="dionysus">Dionysus</option>
+        <option value="hermes">Hermes</option>
+      </select>
+      <button type="submit">Submit Your Choice</button>
+    </form>
+
+    <div class="message" id="guilty-confirmation"></div>
+    <div class="error-message" id="guilty-error-message"></div>
+
+    <!-- Go back to start button -->
+    <button id="goBackButton" style="display:none;" onclick="goBackToStart()">Go Back to Start</button>
+  </div>
+
+  <script>
+    // First Question Logic
+    document.getElementById("revelation-form").addEventListener("submit", function(event) {
+      event.preventDefault(); // Prevent form submission
+
+      const message = document.getElementById("message").value.trim().toLowerCase();  // Convert to lowercase
+      const correctMessage = "nemesis"; // Correct answer
+
+      if (message === correctMessage) {
+        document.getElementById("confirmation").innerText = "Correct answer, the gods will remember your name.";
+        document.getElementById("error-message").innerText = ""; // Clear error message
+        document.getElementById("revelation-form").style.display = "none"; // Hide the first question
+        document.getElementById("guilty-form").style.display = "block"; // Show the second question
+        document.getElementById("correct-sound").play(); // Play correct sound
+      } else {
+        document.getElementById("confirmation").innerText = ""; // Clear success message
+        document.getElementById("error-message").innerText = "Incorrect! Please try again or go back to the start.";
+        document.getElementById("wrong-sound").play(); // Play wrong sound
+        document.getElementById("goBackButton").style.display = "inline-block"; // Show go back button
+      }
+    });
+
+    // Second Question Logic (Multiple Choice for Who is Guilty)
+    document.getElementById("guilty-form").addEventListener("submit", function(event) {
+      event.preventDefault(); // Prevent form submission
+
+      const guilty = document.getElementById("guilty").value.trim().toLowerCase(); // Get selected answer
+      const confirmation = document.getElementById("guilty-confirmation");
+      const error = document.getElementById("guilty-error-message");
+
+      confirmation.innerText = "";
+      error.innerText = "";
+
+      if (guilty === "hermes") {
+        document.getElementById("correct-sound").play(); // Play correct sound
+        confirmation.innerText = "Yes… His words flew on winged feet. The messenger opened the door. You have found the truth.";
+
+        // Delay slightly, then play game over sound, then go to end
+        setTimeout(() => {
+          document.getElementById("gameover-sound").play(); // Play game over sound
+        }, 1000); // slight pause after message
+
+        setTimeout(() => {
+          window.location.href = "end.html"; // Redirect to end page
+        }, 4000); // give time for the sound to play (~3s duration)
+      } else if (guilty === "hera") {
+        document.getElementById("wrong-sound").play(); // Play wrong sound
+        error.innerText = "Hera hides her motives in whispers and riddles… but this door was opened, not whispered open. Think again.";
+      } else if (guilty === "dionysus") {
+        document.getElementById("wrong-sound").play(); // Play wrong sound
+        error.innerText = "Dionysus is wild, yes. But he celebrates, he distracts — not deceives in silence. The one you seek is quieter…";
+      }
+    });
+
+    // Go back to start page
+    function goBackToStart() {
+      window.location.href = "index.html"; // Redirect to start page
+    }
+
+    // Sound Toggle Logic
+    let soundEnabled = true; // Default is sound on
+
+    // Get the sound toggle button and audio elements
+    const soundToggleButton = document.getElementById("sound-toggle");
+    const audioElements = document.querySelectorAll("audio");
+
+    // Function to toggle sound on and off
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+
+      // Mute or unmute all audio elements based on soundEnabled
+      audioElements.forEach(audio => {
+        audio.muted = !soundEnabled;
+      });
+
+      // Change button text based on sound state
+      soundToggleButton.innerText = soundEnabled ? "🔊" : "🔇";
+    }
+
+    // Attach click event to the sound toggle button
+    soundToggleButton.addEventListener("click", toggleSound);
+  </script>
+</body>
+</html>

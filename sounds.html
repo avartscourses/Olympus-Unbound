@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mount Olympus TTS</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f0f4f8;
+      padding: 2em;
+      max-width: 800px;
+      margin: auto;
+    }
+    .msg-box {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 1em 1.5em;
+      margin-bottom: 2em;
+    }
+    button, select {
+      padding: 0.5em 1em;
+      font-size: 1em;
+      margin-top: 0.5em;
+    }
+    label {
+      display: block;
+      margin-top: 1em;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Mount Olympus Voice Messages</h1>
+
+  <div class="msg-box">
+    <h3>Zeus's Message to Explorer</h3>
+    <p id="zeus-text">
+      You stand at the threshold of realms unseen. You shouldn't be here as strange events unfold on Mount Olympus.
+      I, Zeus, father of gods and men, call upon you.
+      A doorway has been left open to the palace of the immortals—a door that must be closed.
+      Your task is to find the door and close it!
+      Meet me there. Hear my truth. Bring my message back to the people.
+      Go now, brave explorer... Save yourself and humanity.
+    </p>
+    <label for="zeus-voice">Choose Zeus's Voice:</label>
+    <select id="zeus-voice"></select>
+    <button onclick="speak('zeus')">🔊 Play Zeus</button>
+  </div>
+
+  <div class="msg-box">
+    <h3>Scholar's Message</h3>
+    <p id="scholar-text">
+      Hello, stranger. I come to Mount Olympus very often because I like the calm here and love to watch the birds.
+      The gods are looking for the truth—someone has left the door at the edge of their world open.
+      Please help them uncover what really happened.
+      I think Achilles is the one you can trust.
+      Go now, smart scholar. Save yourself and all of us from the gods’ anger.
+    </p>
+    <label for="scholar-voice">Choose Scholar's Voice:</label>
+    <select id="scholar-voice"></select>
+    <button onclick="speak('scholar')">🔊 Play Scholar</button>
+  </div>
+
+  <script>
+    const voicesReady = new Promise((resolve) => {
+      speechSynthesis.onvoiceschanged = () => {
+        resolve(speechSynthesis.getVoices());
+      };
+    });
+
+    async function populateVoices() {
+      const voices = await voicesReady;
+      const zeusSelect = document.getElementById('zeus-voice');
+      const scholarSelect = document.getElementById('scholar-voice');
+
+      voices.forEach((voice, i) => {
+        const option1 = document.createElement('option');
+        option1.value = i;
+        option1.textContent = `${voice.name} (${voice.lang})`;
+        zeusSelect.appendChild(option1);
+
+        const option2 = document.createElement('option');
+        option2.value = i;
+        option2.textContent = `${voice.name} (${voice.lang})`;
+        scholarSelect.appendChild(option2);
+      });
+    }
+
+    populateVoices();
+
+    async function speak(role) {
+      const voices = await voicesReady;
+      const text = document.getElementById(`${role}-text`).innerText;
+      const select = document.getElementById(`${role}-voice`);
+      const voiceIndex = select.value;
+
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.voice = voices[voiceIndex];
+      utter.rate = role === 'zeus' ? 0.9 : 1.1;
+      utter.pitch = role === 'zeus' ? 0.6 : 1.3;
+      speechSynthesis.speak(utter);
+    }
+  </script>
+
+</body>
+</html>

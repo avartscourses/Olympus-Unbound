@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AR Explorer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- MindAR Library -->
+  <script src="./libs/mindar/mindar-image-three.prod.js"></script>
+
+  <!-- CSS -->
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+      width: 100%;
+      font-family: Arial, sans-serif;
+    }
+
+    .mindar-container {
+      width: 100vw; /* Πλάτος 100% της οθόνης */
+      height: 100vh; /* Ύψος 100% της οθόνης */
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: block;
+      object-fit: cover;
+    }
+
+    #ar-ui {
+      width: 100%;
+      height: 100%;
+    }
+
+    #ui-buttons {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      pointer-events: auto;
+    }
+
+    #ui-buttons button {
+      padding: 15px 30px;
+      font-size: 18px;
+      margin: 10px;
+      background: #5e6a76; /* Blue-Grey Color */
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    #ui-buttons button:hover {
+      background: #4a555c; /* Darker Blue-Grey for Hover */
+    }
+
+    #ui-buttons button:disabled {
+      background: #c1c8cd; /* Light Grey when disabled */
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- AR UI Buttons -->
+  <div id="ui-buttons">
+    <button id="start-ar-engine-button">Start AR</button>
+    <button id="return-button">Return to Scholar</button>
+  </div>
+
+  <!-- MindAR AR Container -->
+  <div id="ar-ui" class="mindar-container"></div>
+
+  <!-- JavaScript -->
+  <script type="module">
+    import { loadGLTF, loadAudio } from "./libs/loader.js";
+    const THREE = window.MINDAR.IMAGE.THREE;
+
+    let mindarThree = null;
+    let isStarted = false;
+
+    const startAREngineButton = document.getElementById("start-ar-engine-button");
+    const returnButton = document.getElementById("return-button");
+    const arUI = document.getElementById("ar-ui");
+
+    // Επιστροφή στην αρχική σελίδα
+    const goBackToRolePage = () => {
+      window.location.href = "wizard.html";
+    };
+
+    returnButton.addEventListener("click", goBackToRolePage);
+
+    // Ξεκίνημα AR
+    const start = async () => {
+      if (isStarted) return;
+      isStarted = true;
+
+      // Initialize MindAR with the container and image target configuration
+      mindarThree = new window.MINDAR.IMAGE.MindARThree({
+        container: arUI,
+        imageTargetSrc: './assets/targets/targetwiz.mind'
+      });
+
+      const { renderer, scene, camera } = mindarThree;
+
+      // Φώτα
+      const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+      scene.add(light);
+
+      // Φόρτωση του Zeus
+      const zeus = await loadGLTF('./assets/models/girl2/scene.gltf');
+      zeus.scene.scale.set(0.5, 0.5, 0.5);
+      zeus.scene.position.set(0, 0, 0);
+
+      // Άγκυρα Zeus
+      const zeusAnchor = mindarThree.addAnchor(0);
+      zeusAnchor.group.add(zeus.scene);
+
+      // Ήχος
+      const listener = new THREE.AudioListener();
+      camera.add(listener);
+
+      const audio1 = new THREE.PositionalAudio(listener);
+      const clip1 = await loadAudio('./assets/sounds/musicband-background.mp3');
+      audio1.setBuffer(clip1);
+      audio1.setRefDistance(100);
+      audio1.setLoop(true);
+      zeusAnchor.group.add(audio1);
+
+      zeusAnchor.onTargetFound = () => audio1.play();
+      zeusAnchor.onTargetLost = () => audio1.pause();
+
+      // Έναρξη AR
+      await mindarThree.start();
+      renderer.setAnimationLoop(() => {
+        renderer.render(scene, camera);
+      });
+
+      
+      startAREngineButton.disabled = true;
+    };
+
+    startAREngineButton.addEventListener("click", start);
+  </script>
+
+</body>
+</html>

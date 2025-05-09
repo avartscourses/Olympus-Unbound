@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Explorer Role</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      font-family: 'Cinzel', serif;
+      background: linear-gradient(to bottom right, #1b2e22, #597d7e);
+      color: #fffbe6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 20px;
+      color: #fddc7a;
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.6);
+      display: none;
+    }
+
+    #sound-toggle {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 20;
+      font-size: 24px;
+      background: none;
+      border: none;
+      color: #fffbe6;
+      cursor: pointer;
+    }
+
+    button {
+      padding: 14px 28px;
+      font-size: 18px;
+      background: #fddc7a;
+      color: #1b2e22;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: 'Cinzel', serif;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      margin: 10px 0;
+    }
+
+    #mission-image-container {
+      position: relative;
+      margin-top: 40px;
+      width: 250px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 3px solid #fddc7a;
+      box-shadow: 0 0 20px rgba(255, 220, 122, 0.5);
+      cursor: pointer;
+    }
+
+    #mission-image {
+      width: 100%;
+      display: block;
+    }
+
+    #play-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 50px;
+      color: white;
+      pointer-events: none;
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.6);
+    }
+
+    #skip-button {
+      margin-top: 20px;
+      font-size: 16px;
+      z-index: 7;
+      background: #ffcc6f;
+      border: 2px solid #aa8420;
+    }
+
+    #start-screen, #password-screen {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+    }
+
+    #password-screen {
+      background-color: rgba(0, 0, 0, 0.6);
+      position: fixed;
+      height: 100%;
+      top: 0;
+      left: 0;
+      z-index: 9;
+    }
+
+    #password-screen input {
+      padding: 10px;
+      font-size: 16px;
+      margin: 10px;
+      border-radius: 6px;
+      border: none;
+    }
+
+    #password-error {
+      color: #ff7b7b;
+      margin-top: 10px;
+      font-style: italic;
+    }
+
+    #controls-button {
+      display: none;
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+    }
+
+    #controls-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .controls-content {
+      background: #fff;
+      color: #000;
+      padding: 25px;
+      border-radius: 12px;
+      max-width: 600px;
+      width: 90%;
+    }
+
+    .controls-content h2 {
+      margin-top: 0;
+      font-size: 24px;
+    }
+
+    .controls-content ul {
+      list-style-type: disc;
+      margin-left: 20px;
+    }
+
+    .controls-content code {
+      background: #eee;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    @media (max-width: 600px) {
+      #mission-image-container {
+        width: 80%;
+      }
+
+      #skip-button,
+      #controls-button button,
+      #password-screen input,
+      #password-screen button {
+        font-size: 16px;
+        padding: 10px 20px;
+        width: 90%;
+        max-width: 300px;
+      }
+
+      .controls-content {
+        font-size: 16px;
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button id="sound-toggle">🔊</button>
+  <h1 id="main-heading">Explorer Role</h1>
+
+  <!-- Mission Image -->
+  <div id="mission-image-container">
+    <img src="./assets/man.jpg" alt="Click to hear your mission" id="mission-image" />
+    <div id="play-icon">▶</div>
+  </div>
+  <button id="skip-button">Skip</button>
+
+  <!-- How to Play Button -->
+  <div id="controls-button">
+    <button>How to Play</button>
+  </div>
+
+  <!-- Start Screen -->
+  <div id="start-screen">
+    <button id="start-button">Enter AR Experience</button>
+    <button id="password-access-button">Enter Secret Code</button>
+    <button id="exit-button">Exit to Reveal</button>
+  </div>
+
+  <!-- Password Screen -->
+  <div id="password-screen">
+    <input type="password" id="password-input" placeholder="Enter Secret Code" />
+    <div>
+      <button id="password-button">Submit</button>
+      <button id="cancel-button">Cancel</button>
+    </div>
+    <p id="password-error"></p>
+  </div>
+
+  <!-- Controls Modal -->
+  <div id="controls-modal">
+    <div class="controls-content">
+      <h2>How to Play</h2>
+      <ul>
+        <li>Use a <strong>QR / AR Scanner App</strong> to find hidden markers.</li>
+        <li>Scan to trigger your mission.</li>
+        <li>Create a free account on <strong>Spatial.io</strong> and download the app.</li>
+        <li>Use the Secret Code to enter the Olympus space in a new tab.</li>
+        <li><strong>Controls:</strong>
+          <ul>
+            <li><code>W</code>, <code>A</code>, <code>S</code>, <code>D</code> — Move</li>
+            <li><code>Shift</code> — Run</li>
+            <li><code>Space</code> x2 — Double Jump</li>
+          </ul>
+        </li>
+        <li>Click "Exit to Reveal" when your mission is done.</li>
+      </ul>
+      <button id="close-controls">Close</button>
+    </div>
+  </div>
+
+  <script type="module">
+    document.addEventListener("DOMContentLoaded", function () {
+      const missionImageContainer = document.getElementById("mission-image-container");
+      const missionImage = document.getElementById("mission-image");
+      const skipButton = document.getElementById("skip-button");
+      const startScreen = document.getElementById("start-screen");
+      const controlsButton = document.querySelector("#controls-button");
+      const controlsModal = document.getElementById("controls-modal");
+      const closeControls = document.getElementById("close-controls");
+      const startButton = document.getElementById("start-button");
+      const passwordAccessButton = document.getElementById("password-access-button");
+      const exitButton = document.getElementById("exit-button");
+      const mainHeading = document.getElementById("main-heading");
+      const passwordScreen = document.getElementById("password-screen");
+      const passwordInput = document.getElementById("password-input");
+      const passwordButton = document.getElementById("password-button");
+      const cancelButton = document.getElementById("cancel-button");
+      const passwordError = document.getElementById("password-error");
+      const soundToggle = document.getElementById("sound-toggle");
+
+      let soundOn = true;
+
+      function revealUI() {
+        missionImageContainer.style.display = "none";
+        skipButton.style.display = "none";
+        startScreen.style.display = "flex";
+        controlsButton.style.display = "block";
+        mainHeading.style.display = "block";
+      }
+
+      // Always show intro
+      missionImageContainer.style.display = "block";
+      skipButton.style.display = "block";
+
+      missionImage.addEventListener("click", () => {
+        if (!soundOn) return;
+        const utterance = new SpeechSynthesisUtterance(
+          "Brave explorer, scan the hidden marker in the real world to begin your quest. Seek the image of our world—round and blue. The first part of the sacred code that leads to Olympus will be revealed! Only a scholar can learn the second part! Ready to go?"
+        );
+        utterance.lang = "en-US";
+        utterance.rate = 1;
+        speechSynthesis.speak(utterance);
+        utterance.onend = revealUI;
+      });
+
+      skipButton.addEventListener("click", () => {
+        speechSynthesis.cancel();
+        revealUI();
+      });
+
+      soundToggle.addEventListener("click", () => {
+        soundOn = !soundOn;
+        soundToggle.textContent = soundOn ? "🔊" : "🔇";
+        if (!soundOn) {
+          speechSynthesis.cancel();
+          document.querySelectorAll("audio").forEach(a => a.pause());
+        }
+      });
+
+      controlsButton.querySelector("button").addEventListener("click", () => {
+        controlsModal.style.display = "flex";
+      });
+
+      closeControls.addEventListener("click", () => {
+        controlsModal.style.display = "none";
+      });
+
+      startButton.addEventListener("click", () => {
+        window.location.href = "ar_explorer.html";
+      });
+
+      passwordAccessButton.addEventListener("click", () => {
+        startScreen.style.display = "none";
+        passwordScreen.style.display = "flex";
+      });
+
+      passwordButton.addEventListener("click", () => {
+        const enteredPassword = passwordInput.value.trim();
+        if (enteredPassword === "explore123") {
+          window.open("https://example.com/secret-page", "_blank");
+          passwordScreen.style.display = "none";
+          passwordInput.value = "";
+          passwordError.textContent = "";
+          startScreen.style.display = "flex";
+        } else {
+          passwordError.textContent = "Incorrect password. Try again.";
+        }
+      });
+
+      cancelButton.addEventListener("click", () => {
+        passwordScreen.style.display = "none";
+        startScreen.style.display = "flex";
+        passwordInput.value = "";
+        passwordError.textContent = "";
+      });
+
+      exitButton.addEventListener("click", () => {
+        window.location.href = "reveal.html";
+      });
+    });
+  </script>
+</body>
+</html>
