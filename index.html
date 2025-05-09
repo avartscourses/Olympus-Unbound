@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>Enter Olympus</title>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Georgia', serif;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: url('./assets/mountains.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+      text-align: center;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(6px);
+      z-index: 0;
+    }
+
+    .content, .header {
+      position: relative;
+      z-index: 1;
+      max-width: 700px;
+      padding: 20px;
+    }
+
+    .header h1 {
+      font-size: clamp(32px, 6vw, 50px);
+      margin-top: 30px;
+      margin-bottom: 10px;
+      color: #ffeb3b;
+      text-shadow: 3px 3px 8px #000;
+    }
+
+    p {
+      font-size: clamp(16px, 4vw, 20px);
+      line-height: 1.6;
+      color: #ffffff;
+      text-shadow: 1px 1px 4px #000;
+      margin-bottom: 30px;
+    }
+
+    .subtext {
+      font-size: clamp(14px, 3.5vw, 18px);
+      font-style: italic;
+      margin-bottom: 25px;
+      color: #b2ff59;
+    }
+
+    .button-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .role-button, .microphone-button {
+      padding: 14px 30px;
+      font-size: 1.2em;
+      background-color: rgba(191, 161, 76, 0.85);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .role-button:hover, .microphone-button:hover {
+      background-color: #4e733d;
+    }
+
+    /* Microphone button styling */
+    .microphone-button {
+      background-color: rgba(255, 193, 7, 0.9);
+      font-size: 20px; /* Smaller icon size */
+      padding: 8px 16px; /* Smaller button size */
+      min-width: 50px;
+      min-height: 50px;
+      border-radius: 50%;
+      color: white;
+    }
+
+    .microphone-button i {
+      font-size: inherit;
+      color: white;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 600px) {
+      .role-button, .microphone-button {
+        font-size: 1em;
+        padding: 12px;
+      }
+
+      .microphone-button {
+        font-size: 18px;
+        padding: 6px 12px;
+        min-width: 45px;
+        min-height: 45px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <h1>Olympus Unbound</h1>
+  </div>
+
+  <div class="content">
+    <p id="story-text">
+      Strange forces stir atop Mount Olympus. Laughter echoes where no one stands. The gods are silent. The mountain watches. You came here for adventure. Now, you're trapped in something far more dangerous. <br><br>
+      To survive, you must uncover the truth—and escape before it claims you too.<br> 
+    </p>
+
+    <div class="subtext" id="role-text">Choose your role to begin your journey.</div>
+
+    <div class="button-container">
+      <a href="explorer.html" class="role-button">Explorer</a>
+      <a href="wizard.html" class="role-button">Scholar</a>
+
+      <!-- Microphone toggle button aligned right -->
+      <button id="microphone-toggle" class="microphone-button">
+        <i class="fas fa-microphone-slash" id="mic-icon"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Ambient background sound -->
+  <audio id="ambient-loop" src="./assets/sounds/horror.mp3" loop preload="auto"></audio>
+
+  <!-- Optional eerie sound -->
+  <audio id="eerie-sound" src="./assets/sounds/laughter.mp3" preload="auto"></audio>
+
+  <!-- FontAwesome for icons -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+
+  <script>
+    let isSpeaking = false;
+    let utterance = null;
+
+    function toggleVoice() {
+      if (isSpeaking) {
+        stopVoiceOver();
+      } else {
+        startVoiceOver();
+      }
+    }
+
+    function startVoiceOver() {
+      const text = document.getElementById("story-text").innerText;
+      const roleText = document.getElementById("role-text").innerText;
+
+      utterance = new SpeechSynthesisUtterance(text + " " + roleText);
+      utterance.lang = 'en-US';
+      utterance.pitch = 1;
+      utterance.rate = 1;
+
+      const eerieSound = document.getElementById("eerie-sound");
+      eerieSound.currentTime = 0;
+      eerieSound.play();
+
+      const ambient = document.getElementById("ambient-loop");
+      ambient.volume = 0.3;
+      ambient.play();
+
+      speechSynthesis.speak(utterance);
+      isSpeaking = true;
+
+      document.getElementById("mic-icon").classList.remove("fa-microphone-slash");
+      document.getElementById("mic-icon").classList.add("fa-microphone");
+
+      utterance.onend = () => {
+        isSpeaking = false;
+        document.getElementById("mic-icon").classList.remove("fa-microphone");
+        document.getElementById("mic-icon").classList.add("fa-microphone-slash");
+      };
+    }
+
+    function stopVoiceOver() {
+      speechSynthesis.cancel();
+      isSpeaking = false;
+
+      const ambient = document.getElementById("ambient-loop");
+      ambient.pause();
+      ambient.currentTime = 0;
+        
+    const eerieSound = document.getElementById("eerie-sound");
+    eerieSound.pause();  // Stop the laughter sound
+    eerieSound.currentTime = 0;  // Reset to start
+
+
+      document.getElementById("mic-icon").classList.remove("fa-microphone");
+      document.getElementById("mic-icon").classList.add("fa-microphone-slash");
+    }
+
+    document.getElementById("microphone-toggle").addEventListener("click", toggleVoice);
+
+    // Mobile autoplay workaround
+    let firstInteractionHandled = false;
+    function handleFirstTouch() {
+      if (!firstInteractionHandled) {
+        firstInteractionHandled = true;
+        document.getElementById("ambient-loop").play().catch(() => {});
+        window.removeEventListener("touchstart", handleFirstTouch);
+        window.removeEventListener("click", handleFirstTouch);
+      }
+    }
+
+    window.addEventListener("touchstart", handleFirstTouch);
+    window.addEventListener("click", handleFirstTouch);
+  </script>
+</body>
+</html>
