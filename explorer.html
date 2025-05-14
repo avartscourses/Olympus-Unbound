@@ -5,6 +5,7 @@
   <title>Explorer Role</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
     html, body {
       margin: 0;
@@ -31,16 +32,24 @@
       display: none;
     }
 
-    #sound-toggle {
+    #sound-toggle,
+    #microphone-toggle {
       position: fixed;
       top: 10px;
-      right: 10px;
       z-index: 20;
       font-size: 24px;
       background: none;
       border: none;
       color: #fffbe6;
       cursor: pointer;
+    }
+
+    #sound-toggle {
+      right: 10px;
+    }
+
+    #microphone-toggle {
+      right: 50px;
     }
 
     button {
@@ -81,6 +90,31 @@
       color: white;
       pointer-events: none;
       text-shadow: 2px 2px 6px rgba(0,0,0,0.6);
+    }
+
+    #scrolling-text {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 10px;
+      font-size: 16px;
+      animation: scroll-up 30s linear forwards;
+      background: rgba(0, 0, 0, 0.5);
+      color: #fffbe6;
+      text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+      display: none;
+      text-align: left;
+      line-height: 1.4;
+    }
+
+    @keyframes scroll-up {
+      from {
+        transform: translateY(100%);
+      }
+      to {
+        transform: translateY(-150%);
+      }
     }
 
     #skip-button {
@@ -151,22 +185,6 @@
       width: 90%;
     }
 
-    .controls-content h2 {
-      margin-top: 0;
-      font-size: 24px;
-    }
-
-    .controls-content ul {
-      list-style-type: disc;
-      margin-left: 20px;
-    }
-
-    .controls-content code {
-      background: #eee;
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-
     @media (max-width: 600px) {
       #mission-image-container {
         width: 80%;
@@ -192,27 +210,26 @@
 <body>
   <button id="sound-toggle">🔊</button>
   <h1 id="main-heading">Explorer Role</h1>
-
-  <!-- Mission Image -->
-  <div id="mission-image-container">
+    
+   <div id="mission-image-container">
     <img src="./assets/man.jpg" alt="Click to hear your mission" id="mission-image" />
     <div id="play-icon">▶</div>
+    <div id="scrolling-text"></div>
   </div>
+
   <button id="skip-button">Skip</button>
 
-  <!-- How to Play Button -->
   <div id="controls-button">
     <button>How to Play</button>
   </div>
 
-  <!-- Start Screen -->
+
   <div id="start-screen">
     <button id="start-button">Enter AR Experience</button>
     <button id="password-access-button">Enter Secret Code</button>
     <button id="exit-button">Exit to Reveal</button>
   </div>
 
-  <!-- Password Screen -->
   <div id="password-screen">
     <input type="password" id="password-input" placeholder="Enter Secret Code" />
     <div>
@@ -221,129 +238,147 @@
     </div>
     <p id="password-error"></p>
   </div>
-
-  <!-- Controls Modal -->
+    
   <div id="controls-modal">
     <div class="controls-content">
       <h2>How to Play</h2>
       <ul>
-        <li>Use a <strong>QR / AR Scanner App</strong> to find hidden markers.</li>
-        <li>Scan to trigger your mission.</li>
-        <li>Create a free account on <strong>Spatial.io</strong> and download the app.</li>
-        <li>Use the Secret Code to enter the Olympus space in a new tab.</li>
-        <li><strong>Controls:</strong>
+        <li>You will need your mobile and an <strong>QR / AR Scanner App</strong>.</li>
+        <li>Find and scan the hidden marker to trigger your mission.</li>
+        <li>You can enter the Mount Olympus from your mobile or desktop/li>
+        <li>Use <strong>the Enter Secret Code button</strong> to enter Mount Olympus in a new tab.</li>
+        <li> Desktop/Laptpop Controls:
           <ul>
             <li><code>W</code>, <code>A</code>, <code>S</code>, <code>D</code> — Move</li>
             <li><code>Shift</code> — Run</li>
-            <li><code>Space</code> x2 — Double Jump</li>
+            <li><code>Space x2</code> — Double Jump</li>
+            <li: Esc + Leave to exit Mout Olympus</li>
           </ul>
         </li>
-        <li>Click "Exit to Reveal" when your mission is done.</li>
+        <li> Use the buttons in the bottom of your mobile to run and jump. Press the spatial symbol to exit</li>
+        <li>After completing your Spatial journey, choose <strong>Exit to Reveal</strong>.</li>
       </ul>
       <button id="close-controls">Close</button>
     </div>
   </div>
 
-  <script type="module">
-    document.addEventListener("DOMContentLoaded", function () {
-      const missionImageContainer = document.getElementById("mission-image-container");
-      const missionImage = document.getElementById("mission-image");
-      const skipButton = document.getElementById("skip-button");
-      const startScreen = document.getElementById("start-screen");
-      const controlsButton = document.querySelector("#controls-button");
-      const controlsModal = document.getElementById("controls-modal");
-      const closeControls = document.getElementById("close-controls");
-      const startButton = document.getElementById("start-button");
-      const passwordAccessButton = document.getElementById("password-access-button");
-      const exitButton = document.getElementById("exit-button");
-      const mainHeading = document.getElementById("main-heading");
-      const passwordScreen = document.getElementById("password-screen");
-      const passwordInput = document.getElementById("password-input");
-      const passwordButton = document.getElementById("password-button");
-      const cancelButton = document.getElementById("cancel-button");
-      const passwordError = document.getElementById("password-error");
-      const soundToggle = document.getElementById("sound-toggle");
 
-      let soundOn = true;
+  <!-- JavaScript -->
+  <!-- Inside the <script type="module"> block -->
+<script type="module">
+  document.addEventListener("DOMContentLoaded", function () {
+    const missionImage = document.getElementById("mission-image");
+    const playIcon = document.getElementById("play-icon");
+    const scrollingText = document.getElementById("scrolling-text");
+    const skipButton = document.getElementById("skip-button");
+    const startScreen = document.getElementById("start-screen");
+    const controlsButton = document.getElementById("controls-button");
+    const controlsModal = document.getElementById("controls-modal");
+    const closeControls = document.getElementById("close-controls");
+    const startButton = document.getElementById("start-button");
+    const passwordAccessButton = document.getElementById("password-access-button");
+    const exitButton = document.getElementById("exit-button");
+    const mainHeading = document.getElementById("main-heading");
+    const passwordScreen = document.getElementById("password-screen");
+    const passwordInput = document.getElementById("password-input");
+    const passwordButton = document.getElementById("password-button");
+    const cancelButton = document.getElementById("cancel-button");
+    const passwordError = document.getElementById("password-error");
+    const soundToggle = document.getElementById("sound-toggle");
 
-      function revealUI() {
-        missionImageContainer.style.display = "none";
-        skipButton.style.display = "none";
-        startScreen.style.display = "flex";
-        controlsButton.style.display = "block";
-        mainHeading.style.display = "block";
-      }
+    // ✅ FIXED: Declare voice variables
+    let isVoiceOn = true;
+    let utterance;
+    const synth = window.speechSynthesis;
 
-      // Always show intro
-      missionImageContainer.style.display = "block";
-      skipButton.style.display = "block";
+    function speak(text, callback) {
+      if (!isVoiceOn) return callback?.();
+      stopSpeaking();
+      utterance = new SpeechSynthesisUtterance(text);
+      utterance.onend = callback;
+      synth.speak(utterance);
+    }
 
-      missionImage.addEventListener("click", () => {
-        if (!soundOn) return;
-        const utterance = new SpeechSynthesisUtterance(
-          "Brave explorer, scan the hidden marker in the real world to begin your quest. Seek the image of our world—round and blue. The first part of the sacred code that leads to Olympus will be revealed! Only a scholar can learn the second part! Ready to go?"
-        );
-        utterance.lang = "en-US";
-        utterance.rate = 1;
-        speechSynthesis.speak(utterance);
-        utterance.onend = revealUI;
-      });
+    function stopSpeaking() {
+      if (synth.speaking) synth.cancel();
+    }
 
-      skipButton.addEventListener("click", () => {
-        speechSynthesis.cancel();
+    function revealUI() {
+      document.getElementById("mission-image-container").style.display = "none";
+      skipButton.style.display = "none";
+      startScreen.style.display = "flex";
+      controlsButton.style.display = "block";
+    }
+
+    missionImage.addEventListener("click", () => {
+      playIcon.style.display = "none";
+
+      // ✅ FIXED: Removed extra '='
+      const text = "Brave explorer, scan the hidden marker in the real world to begin your quest. Seek the image of our world—round and blue. The first part of the sacred code that leads to Olympus will be revealed! Only a scholar can learn the second part! Ready to go?";
+
+      scrollingText.textContent = text;
+      scrollingText.style.display = "block";
+      speak(text, () => {
+        playIcon.style.display = "block";
         revealUI();
       });
+    });
 
-      soundToggle.addEventListener("click", () => {
-        soundOn = !soundOn;
-        soundToggle.textContent = soundOn ? "🔊" : "🔇";
-        if (!soundOn) {
-          speechSynthesis.cancel();
-          document.querySelectorAll("audio").forEach(a => a.pause());
-        }
-      });
+    skipButton.addEventListener("click", () => {
+      stopSpeaking();
+      scrollingText.style.display = "none";
+      revealUI();
+    });
 
-      controlsButton.querySelector("button").addEventListener("click", () => {
-        controlsModal.style.display = "flex";
-      });
+    soundToggle.addEventListener("click", () => {
+      isVoiceOn = !isVoiceOn;
+      soundToggle.textContent = isVoiceOn ? "🔊" : "🔇";
+      if (!isVoiceOn) stopSpeaking();
+    });
 
-      closeControls.addEventListener("click", () => {
-        controlsModal.style.display = "none";
-      });
+    // ✅ FIXED: Use controlsButton directly
+    controlsButton.addEventListener("click", () => {
+      controlsModal.style.display = "flex";
+    });
 
-      startButton.addEventListener("click", () => {
-        window.location.href = "ar_explorer.html";
-      });
+    closeControls.addEventListener("click", () => {
+      controlsModal.style.display = "none";
+    });
 
-      passwordAccessButton.addEventListener("click", () => {
-        startScreen.style.display = "none";
-        passwordScreen.style.display = "flex";
-      });
+    startButton.addEventListener("click", () => {
+      window.location.href = "ar_explorer.html";
+    });
 
-      passwordButton.addEventListener("click", () => {
-        const enteredPassword = passwordInput.value.trim();
-        if (enteredPassword === "explore123") {
-          window.open("https://example.com/secret-page", "_blank");
-          passwordScreen.style.display = "none";
-          passwordInput.value = "";
-          passwordError.textContent = "";
-          startScreen.style.display = "flex";
-        } else {
-          passwordError.textContent = "Incorrect password. Try again.";
-        }
-      });
+    passwordAccessButton.addEventListener("click", () => {
+      startScreen.style.display = "none";
+      passwordScreen.style.display = "flex";
+    });
 
-      cancelButton.addEventListener("click", () => {
+    passwordButton.addEventListener("click", () => {
+      const enteredPassword = passwordInput.value.trim();
+      if (enteredPassword === "olivetree") {
+        window.open("https://www.spatial.io/s/Test_Zeus-6824f150f734432bbfb0ad0f", "_blank");
         passwordScreen.style.display = "none";
-        startScreen.style.display = "flex";
         passwordInput.value = "";
         passwordError.textContent = "";
-      });
-
-      exitButton.addEventListener("click", () => {
-        window.location.href = "reveal.html";
-      });
+        startScreen.style.display = "flex";
+      } else {
+        passwordError.textContent = "Incorrect password. Try again.";
+      }
     });
-  </script>
+
+    cancelButton.addEventListener("click", () => {
+      passwordScreen.style.display = "none";
+      startScreen.style.display = "flex";
+      passwordInput.value = "";
+      passwordError.textContent = "";
+    });
+
+    exitButton.addEventListener("click", () => {
+      window.location.href = "reveal.html";
+    });
+  });
+</script>
+
 </body>
 </html>

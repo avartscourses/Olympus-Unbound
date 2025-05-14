@@ -89,11 +89,10 @@
       background-color: #4e733d;
     }
 
-    /* Microphone button styling */
     .microphone-button {
       background-color: rgba(255, 193, 7, 0.9);
-      font-size: 20px; /* Smaller icon size */
-      padding: 8px 16px; /* Smaller button size */
+      font-size: 20px;
+      padding: 8px 16px;
       min-width: 50px;
       min-height: 50px;
       border-radius: 50%;
@@ -105,7 +104,6 @@
       color: white;
     }
 
-    /* Responsive adjustments */
     @media (max-width: 600px) {
       .role-button, .microphone-button {
         font-size: 1em;
@@ -138,97 +136,91 @@
     <div class="button-container">
       <a href="explorer.html" class="role-button">Explorer</a>
       <a href="wizard.html" class="role-button">Scholar</a>
-
-      <!-- Microphone toggle button aligned right -->
       <button id="microphone-toggle" class="microphone-button">
         <i class="fas fa-microphone-slash" id="mic-icon"></i>
       </button>
     </div>
   </div>
 
-  <!-- Ambient background sound -->
   <audio id="ambient-loop" src="./assets/sounds/horror.mp3" loop preload="auto"></audio>
-
-  <!-- Optional eerie sound -->
   <audio id="eerie-sound" src="./assets/sounds/laughter.mp3" preload="auto"></audio>
 
-  <!-- FontAwesome for icons -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
 
-  <script>
-    let isSpeaking = false;
-    let utterance = null;
+  <script type="module">
+    import {
+      isSoundEnabled,
+      toggleSound,
+      speakText,
+      playAmbient,
+      playSoundOnce
+    } from './audio.js';
 
-    function toggleVoice() {
-      if (isSpeaking) {
-        stopVoiceOver();
-      } else {
-        startVoiceOver();
-      }
-    }
-
-    function startVoiceOver() {
-      const text = document.getElementById("story-text").innerText;
-      const roleText = document.getElementById("role-text").innerText;
-
-      utterance = new SpeechSynthesisUtterance(text + " " + roleText);
-      utterance.lang = 'en-US';
-      utterance.pitch = 1;
-      utterance.rate = 1;
-
+    document.addEventListener("DOMContentLoaded", () => {
+      const micBtn = document.getElementById("microphone-toggle");
+      const micIcon = document.getElementById("mic-icon");
+      const ambientLoop = document.getElementById("ambient-loop");
       const eerieSound = document.getElementById("eerie-sound");
-      eerieSound.currentTime = 0;
-      eerieSound.play();
 
-      const ambient = document.getElementById("ambient-loop");
-      ambient.volume = 0.3;
-      ambient.play();
-
-      speechSynthesis.speak(utterance);
-      isSpeaking = true;
-
-      document.getElementById("mic-icon").classList.remove("fa-microphone-slash");
-      document.getElementById("mic-icon").classList.add("fa-microphone");
-
-      utterance.onend = () => {
-        isSpeaking = false;
-        document.getElementById("mic-icon").classList.remove("fa-microphone");
-        document.getElementById("mic-icon").classList.add("fa-microphone-slash");
-      };
-    }
-
-    function stopVoiceOver() {
-      speechSynthesis.cancel();
-      isSpeaking = false;
-
-      const ambient = document.getElementById("ambient-loop");
-      ambient.pause();
-      ambient.currentTime = 0;
-        
-    const eerieSound = document.getElementById("eerie-sound");
-    eerieSound.pause();  // Stop the laughter sound
-    eerieSound.currentTime = 0;  // Reset to start
-
-
-      document.getElementById("mic-icon").classList.remove("fa-microphone");
-      document.getElementById("mic-icon").classList.add("fa-microphone-slash");
-    }
-
-    document.getElementById("microphone-toggle").addEventListener("click", toggleVoice);
-
-    // Mobile autoplay workaround
-    let firstInteractionHandled = false;
-    function handleFirstTouch() {
-      if (!firstInteractionHandled) {
-        firstInteractionHandled = true;
-        document.getElementById("ambient-loop").play().catch(() => {});
-        window.removeEventListener("touchstart", handleFirstTouch);
-        window.removeEventListener("click", handleFirstTouch);
+      function updateMicIcon() {
+        if (isSoundEnabled()) {
+          micIcon.classList.remove("fa-microphone-slash");
+          micIcon.classList.add("fa-microphone");
+        } else {
+          micIcon.classList.remove("fa-microphone");
+          micIcon.classList.add("fa-microphone-slash");
+        }
       }
-    }
 
-    window.addEventListener("touchstart", handleFirstTouch);
-    window.addEventListener("click", handleFirstTouch);
+      micBtn.addEventListener("click", () => {
+        const nowEnabled = toggleSound();
+        updateMicIcon();
+        if (nowEnabled) {
+          speakText(
+            document.getElementById("story-text").innerText +
+            " " +
+            document.getElementById("role-text").innerText
+          );
+          playAmbient("ambient-loop");
+          playSoundOnce("eerie-sound");
+        } else {
+          speechSynthesis.cancel();
+          ambientLoop.pause();
+          eerieSound.pause();
+        }
+      });
+
+      updateMicIcon();
+      if (isSoundEnabled()) {
+        playAmbient("ambient-loop");
+      }
+
+      // Intercept navigation to stop speech first
+      document.querySelectorAll('.role-button').forEach(button => {
+        button.addEventListener("click", (e) => {
+          e.preventDefault();
+          speechSynthesis.cancel();
+          const target = button.getAttribute("href");
+          setTimeout(() => window.location.href = target, 50);
+        });
+      });
+
+      // Mobile autoplay workaround
+      let firstInteractionHandled = false;
+      function handleFirstTouch() {
+        if (!firstInteractionHandled) {
+          firstInteractionHandled = true;
+          if (isSoundEnabled()) {
+            ambientLoop.play().catch(() => {});  // Start music on first interaction
+          }
+          window.removeEventListener("touchstart", handleFirstTouch);
+          window.removeEventListener("click", handleFirstTouch);
+        }
+      }
+
+      window.addEventListener("touchstart", handleFirstTouch);
+      window.addEventListener("click", handleFirstTouch);
+    });
   </script>
 </body>
 </html>

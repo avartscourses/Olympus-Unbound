@@ -43,6 +43,18 @@
       margin: 10px 0;
     }
 
+    #sound-toggle {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 20;
+      font-size: 24px;
+      background: none;
+      border: none;
+      color: #fffbe6;
+      cursor: pointer;
+    }
+
     #mission-image-container {
       position: relative;
       margin-top: 40px;
@@ -68,6 +80,31 @@
       color: white;
       pointer-events: none;
       text-shadow: 2px 2px 6px rgba(0,0,0,0.6);
+    }
+
+    #scrolling-text {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 10px;
+      font-size: 16px;
+      animation: scroll-up 30s linear forwards;
+      background: rgba(0, 0, 0, 0.5);
+      color: #fffbe6;
+      text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+      text-align: left;
+      line-height: 1.4;
+      display: none;
+    }
+
+    @keyframes scroll-up {
+      from {
+        transform: translateY(100%);
+      }
+      to {
+        transform: translateY(-150%);
+      }
     }
 
     #skip-button {
@@ -177,12 +214,16 @@
   </style>
 </head>
 <body>
+
+  <button id="sound-toggle">🔊</button>
   <h1 id="main-heading">Scholar Role</h1>
 
   <div id="mission-image-container">
     <img src="./assets/man.jpg" alt="Click to hear your mission" id="mission-image" />
     <div id="play-icon">▶</div>
+    <div id="scrolling-text"></div>
   </div>
+
   <button id="skip-button">Skip</button>
 
   <div id="controls-button">
@@ -208,113 +249,127 @@
     <div class="controls-content">
       <h2>How to Play</h2>
       <ul>
-        <li>You will need your mobile and an <strong>QR / AR Scanner App</strong>.</li>
-        <li>Find and scan the hidden marker to trigger your mission.</li>
-        <li>To enter the Mount Olympus space, you must create an account on <strong>Spatial.io</strong> and download the app to your mobile device.</li>
-        <li>Use <strong>the Enter Secret Code button</strong> to access Spatial in a new tab.</li>
-        <li>🎮 Controls:
+        <li>Use your mobile and an <strong>AR Scanner App</strong>.</li>
+        <li>Scan the hidden marker to trigger your mission.</li>
+        <li>To enter Mount Olympus, create an account on <strong>Spatial.io</strong> and use the app.</li>
+        <li>Use <strong>Enter Secret Code</strong> to open the gate.</li>
+        <li><strong>🎮 Controls:</strong>
           <ul>
             <li><code>W</code>, <code>A</code>, <code>S</code>, <code>D</code> — Move</li>
             <li><code>Shift</code> — Run</li>
-            <li><code>Space x2</code> — Double Jump</li>
+            <li><code>Space</code> x2 — Double Jump</li>
           </ul>
         </li>
-        <li>After completing your Spatial journey, return and click <strong>Exit to Reveal</strong>.</li>
+        <li>Return and click <strong>Exit to Reveal</strong>.</li>
       </ul>
       <button id="close-controls">Close</button>
     </div>
   </div>
 
-  <script type="module">
-    document.addEventListener("DOMContentLoaded", function () {
-      const missionImageContainer = document.getElementById("mission-image-container");
-      const missionImage = document.getElementById("mission-image");
-      const skipButton = document.getElementById("skip-button");
-      const startScreen = document.getElementById("start-screen");
-      const controlsButton = document.querySelector("#controls-button");
-      const controlsModal = document.getElementById("controls-modal");
-      const closeControls = document.getElementById("close-controls");
-      const startButton = document.getElementById("start-button");
-      const passwordAccessButton = document.getElementById("password-access-button");
-      const exitButton = document.getElementById("exit-button");
-      const mainHeading = document.getElementById("main-heading");
-      const passwordScreen = document.getElementById("password-screen");
-      const passwordInput = document.getElementById("password-input");
-      const passwordButton = document.getElementById("password-button");
-      const cancelButton = document.getElementById("cancel-button");
-      const passwordError = document.getElementById("password-error");
+  <script>
+    let isVoiceOn = true;
+    const synth = window.speechSynthesis;
+    let utterance;
 
-      function speakMission() {
-        const utterance = new SpeechSynthesisUtterance(
-          "Strange events unfold on Mount Olympus... hikers are vanishing, strange sounds echo in the wind! Wise Scholar, find the part that is missing in the real world to unlock the second part of the sacred code that leads to Mount Olympus. Only a brave explorer will bring you the first part! Ready to go?"
-        );
-        utterance.lang = "en-US";
-        utterance.rate = 1;
-        speechSynthesis.cancel();
-        speechSynthesis.speak(utterance);
-      }
+    const soundToggle = document.getElementById("sound-toggle");
+    const missionImage = document.getElementById("mission-image");
+    const playIcon = document.getElementById("play-icon");
+    const scrollingText = document.getElementById("scrolling-text");
+    const skipButton = document.getElementById("skip-button");
+    const startScreen = document.getElementById("start-screen");
+    const controlsButton = document.getElementById("controls-button");
+    const controlsModal = document.getElementById("controls-modal");
+    const closeControls = document.getElementById("close-controls");
+    const startButton = document.getElementById("start-button");
+    const passwordAccessButton = document.getElementById("password-access-button");
+    const exitButton = document.getElementById("exit-button");
+    const passwordScreen = document.getElementById("password-screen");
+    const passwordInput = document.getElementById("password-input");
+    const passwordButton = document.getElementById("password-button");
+    const cancelButton = document.getElementById("cancel-button");
+    const passwordError = document.getElementById("password-error");
 
-      function revealUI() {
-        missionImageContainer.style.display = "none";
-        skipButton.style.display = "none";
-        startScreen.style.display = "flex";
-        controlsButton.style.display = "block";
-        mainHeading.style.display = "block";
-      }
+    function speak(text, callback) {
+      if (!isVoiceOn) return callback?.();
+      stopSpeaking();
+      utterance = new SpeechSynthesisUtterance(text);
+      utterance.onend = callback;
+      synth.speak(utterance);
+    }
 
-      // Always show image and skip button
-      skipButton.style.display = "block";
-      missionImageContainer.style.display = "block";
+    function stopSpeaking() {
+      if (synth.speaking) synth.cancel();
+    }
 
-      missionImage.addEventListener("click", () => {
-        speakMission();
-      });
+    function revealUI() {
+      document.getElementById("mission-image-container").style.display = "none";
+      skipButton.style.display = "none";
+      startScreen.style.display = "flex";
+      controlsButton.style.display = "block";
+    }
 
-      skipButton.addEventListener("click", () => {
-        speechSynthesis.cancel();
+    missionImage.addEventListener("click", () => {
+      playIcon.style.display = "none";
+      const text = "Strange events unfold on Mount Olympus... hikers are vanishing, strange sounds echo in the wind! Wise Scholar, find the part that is missing in the real world to unlock the second part of the sacred code that leads to Mount Olympus. Only a brave explorer will bring you the first part! Ready to go?";
+      scrollingText.textContent = text;
+      scrollingText.style.display = "block";
+      speak(text, () => {
+        playIcon.style.display = "block";
         revealUI();
       });
+    });
 
-      controlsButton.querySelector("button").addEventListener("click", () => {
-        controlsModal.style.display = "flex";
-      });
+    skipButton.addEventListener("click", () => {
+      stopSpeaking();
+      scrollingText.style.display = "none";
+      revealUI();
+    });
 
-      closeControls.addEventListener("click", () => {
-        controlsModal.style.display = "none";
-      });
+    soundToggle.addEventListener("click", () => {
+      isVoiceOn = !isVoiceOn;
+      soundToggle.textContent = isVoiceOn ? "🔊" : "🔇";
+      if (!isVoiceOn) stopSpeaking();
+    });
 
-      startButton.addEventListener("click", () => {
-        window.location.href = "ar_wizard.html";
-      });
+    controlsButton.querySelector("button").addEventListener("click", () => {
+      controlsModal.style.display = "flex";
+    });
 
-      passwordAccessButton.addEventListener("click", () => {
-        startScreen.style.display = "none";
-        passwordScreen.style.display = "flex";
-      });
+    closeControls.addEventListener("click", () => {
+      controlsModal.style.display = "none";
+    });
 
-      passwordButton.addEventListener("click", () => {
-        const enteredPassword = passwordInput.value.trim();
-        if (enteredPassword === "scholar123") {
-          window.open("https://example.com/secret-page", "_blank");
-          passwordScreen.style.display = "none";
-          passwordInput.value = "";
-          passwordError.textContent = "";
-          startScreen.style.display = "flex";
-        } else {
-          passwordError.textContent = "Incorrect password. Try again.";
-        }
-      });
+    startButton.addEventListener("click", () => {
+      window.location.href = "ar_wizard.html";
+    });
 
-      cancelButton.addEventListener("click", () => {
+    passwordAccessButton.addEventListener("click", () => {
+      startScreen.style.display = "none";
+      passwordScreen.style.display = "flex";
+    });
+
+    passwordButton.addEventListener("click", () => {
+      const enteredPassword = passwordInput.value.trim();
+      if (enteredPassword === "olivetree") {
+        window.open("https://www.spatial.io/s/Test_Zeus-6824f150f734432bbfb0ad0f", "_blank");
         passwordScreen.style.display = "none";
-        startScreen.style.display = "flex";
         passwordInput.value = "";
         passwordError.textContent = "";
-      });
+        startScreen.style.display = "flex";
+      } else {
+        passwordError.textContent = "Incorrect password. Try again.";
+      }
+    });
 
-      exitButton.addEventListener("click", () => {
-        window.location.href = "reveal.html";
-      });
+    cancelButton.addEventListener("click", () => {
+      passwordScreen.style.display = "none";
+      startScreen.style.display = "flex";
+      passwordInput.value = "";
+      passwordError.textContent = "";
+    });
+
+    exitButton.addEventListener("click", () => {
+      window.location.href = "reveal.html";
     });
   </script>
 </body>
