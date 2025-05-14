@@ -58,23 +58,36 @@
     .error-message { color: darkred; }
     
     /* Sound Toggle Button Style */
-    #sound-toggle {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      padding: 10px;
-      background-color: #6d4c41;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      font-size: 20px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
+#sound-toggle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 10px;
+  background-color: transparent; /* Keep background transparent */
+  color: #6d4c41; /* Use a more neutral color for the icon */
+  border: none; /* No border */
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
 
-    #sound-toggle:hover {
-      background-color: #5d4037;
-    }
+#sound-toggle:hover {
+  background-color: rgba(0, 0, 0, 0.1); /* Light hover effect */
+  color: #5d4037; /* Slightly change the icon color on hover */
+}
+
+#sound-toggle:focus {
+  outline: none; /* Remove any outline */
+  box-shadow: none; /* Ensure no shadow or border appears when focused */
+}
+
+
+
+
+
+
+    
   </style>
 </head>
 <body>

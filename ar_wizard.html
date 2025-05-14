@@ -127,10 +127,11 @@
       camera.add(listener);
 
       const audio1 = new THREE.PositionalAudio(listener);
-      const clip1 = await loadAudio('./assets/sounds/musicband-background.mp3');
+      const clip1 = await loadAudio('./assets/sounds/markersch.mp3');
       audio1.setBuffer(clip1);
       audio1.setRefDistance(100);
       audio1.setLoop(true);
+        audio1.setVolume(5.1); 
       zeusAnchor.group.add(audio1);
 
       zeusAnchor.onTargetFound = () => audio1.play();
